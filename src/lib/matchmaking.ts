@@ -27,6 +27,10 @@ export interface PlayerEdge {
   weight: number;
 }
 
+export interface AdjacencyList {
+  [playerId: string]: { playerId: string; weight: number; edgeId: string }[];
+}
+
 export interface Match {
   id: string;
   players: Player[];
@@ -89,6 +93,15 @@ export function buildCompatibilityGraph(players: Player[], ratingThreshold = 250
   }
 
   return edges;
+}
+
+export function buildAdjacencyList(players: Player[], edges: PlayerEdge[]): AdjacencyList {
+  const adjacency: AdjacencyList = Object.fromEntries(players.map((player) => [player.id, []]));
+  for (const edge of edges) {
+    adjacency[edge.source]?.push({ playerId: edge.target, weight: edge.weight, edgeId: edge.id });
+    adjacency[edge.target]?.push({ playerId: edge.source, weight: edge.weight, edgeId: edge.id });
+  }
+  return adjacency;
 }
 
 function makeMatch(id: number, players: Player[], links: PlayerEdge[]): Match {
