@@ -55,6 +55,7 @@ export interface MatchmakingRun extends GreedyResult {
 
 export const REGIONS: Region[] = ["Asia", "EU", "NA"];
 
+/** Builds an adjacency-list edge set in O(n²) time and O(E) space. */
 export function buildCompatibilityGraph(players: Player[], ratingThreshold = 250): PlayerEdge[] {
   const edges: PlayerEdge[] = [];
 
@@ -114,6 +115,7 @@ function makeMatch(id: number, players: Player[], links: PlayerEdge[]): Match {
   };
 }
 
+/** Sorts edges in O(E log E), then selects disjoint pairs in O(E). */
 export function greedyMatchPlayers(players: Player[], edges: PlayerEdge[]): GreedyResult {
   const sortedEdges = [...edges].sort(
     (a, b) => a.weight - b.weight || a.id.localeCompare(b.id),
@@ -132,28 +134,39 @@ export function greedyMatchPlayers(players: Player[], edges: PlayerEdge[]): Gree
   }
 
   const groupSize = players[0]?.gameMode === "2v2" ? 2 : 1;
-  const completedPairCount = Math.floor(selectedPairs.length / groupSize) * groupSize;
+  const pairsByRegion = new Map<Region, typeof selectedPairs>();
+  for (const pair of selectedPairs) {
+    const region = pair.players[0].region;
+    const regionalPairs = pairsByRegion.get(region) ?? [];
+    regionalPairs.push(pair);
+    pairsByRegion.set(region, regionalPairs);
+  }
   const matches: Match[] = [];
   const acceptedEdges: PlayerEdge[] = [];
 
-  for (let i = 0; i < completedPairCount; i += groupSize) {
-    const pairGroup = selectedPairs.slice(i, i + groupSize);
-    const groupPlayers = pairGroup.flatMap(({ players: pair }) => pair);
+  for (const regionalPairs of pairsByRegion.values()) {
+    const completedPairCount = Math.floor(regionalPairs.length / groupSize) * groupSize;
+    for (let i = 0; i < completedPairCount; i += groupSize) {
+      const pairGroup = regionalPairs.slice(i, i + groupSize);
+      const groupPlayers = pairGroup.flatMap(({ players: pair }) => pair);
 
-    if (groupSize === 2) {
-      const ranked = [...groupPlayers].sort(
-        (a, b) => b.skillRating - a.skillRating || a.id.localeCompare(b.id),
-      );
-      const first = ranked[0];
-      const second = ranked[1];
-      const third = ranked[2];
-      const fourth = ranked[3];
-      if (!first || !second || !third || !fourth) continue;
-      matches.push(makeMatch(matches.length, [first, second, third, fourth], pairGroup.map((pair) => pair.edge)));
-    } else {
-      matches.push(makeMatch(matches.length, groupPlayers, pairGroup.map((pair) => pair.edge)));
+      if (groupSize === 2) {
+        const ranked = [...groupPlayers].sort(
+          (a, b) => b.skillRating - a.skillRating || a.id.localeCompare(b.id),
+        );
+        const first = ranked[0];
+        const second = ranked[1];
+        const third = ranked[2];
+        const fourth = ranked[3];
+        if (!first || !second || !third || !fourth) continue;
+        matches.push(
+          makeMatch(matches.length, [first, second, third, fourth], pairGroup.map((pair) => pair.edge)),
+        );
+      } else {
+        matches.push(makeMatch(matches.length, groupPlayers, pairGroup.map((pair) => pair.edge)));
+      }
+      acceptedEdges.push(...pairGroup.map((pair) => pair.edge));
     }
-    acceptedEdges.push(...pairGroup.map((pair) => pair.edge));
   }
 
   const matchedIds = new Set(matches.flatMap((match) => match.players.map((player) => player.id)));
@@ -227,6 +240,7 @@ export function dijkstra(
   graph: Map<string, { to: string; weight: number }[]>,
   start: string,
 ): Map<string, number> {
+  // A binary min-heap gives Dijkstra's O((V + E) log V) bound.
   const distances = new Map<string, number>([[start, 0]]);
   const queue = new MinHeap();
   queue.push({ id: start, distance: 0 });
@@ -267,7 +281,7 @@ export function assignServers(matches: Match[], servers: Server[]): { matches: M
 
     const distances = dijkstra(graph, source);
     const chosen = availableServers
-      .filter((server) => server.currentLoad < server.capacity)
+      .filter((server) => server.currentLoad + match.players.length <= server.capacity)
       .sort((a, b) => {
         const distanceA = distances.get(a.id) ?? Number.POSITIVE_INFINITY;
         const distanceB = distances.get(b.id) ?? Number.POSITIVE_INFINITY;
