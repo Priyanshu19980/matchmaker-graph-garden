@@ -70,6 +70,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-region-asia: var(--region-asia);
+  --color-region-eu: var(--region-eu);
+  --color-region-na: var(--region-na);
 }
 
 :root {
@@ -109,38 +114,89 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.16 0.018 245);
+  --foreground: oklch(0.94 0.015 220);
+  --card: oklch(0.205 0.022 246);
+  --card-foreground: oklch(0.94 0.015 220);
+  --popover: oklch(0.205 0.022 246);
+  --popover-foreground: oklch(0.94 0.015 220);
+  --primary: oklch(0.78 0.17 155);
+  --primary-foreground: oklch(0.17 0.025 245);
+  --secondary: oklch(0.28 0.025 245);
+  --secondary-foreground: oklch(0.94 0.015 220);
+  --muted: oklch(0.255 0.022 245);
+  --muted-foreground: oklch(0.69 0.025 230);
+  --accent: oklch(0.28 0.025 245);
+  --accent-foreground: oklch(0.94 0.015 220);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --border: oklch(0.36 0.025 245 / 75%);
+  --input: oklch(0.36 0.025 245);
+  --ring: oklch(0.78 0.17 155);
+  --chart-1: oklch(0.78 0.17 155);
+  --chart-2: oklch(0.73 0.15 220);
+  --chart-3: oklch(0.75 0.16 65);
+  --chart-4: oklch(0.71 0.15 25);
+  --chart-5: oklch(0.72 0.14 300);
+  --sidebar: oklch(0.205 0.022 246);
+  --sidebar-foreground: oklch(0.94 0.015 220);
+  --sidebar-primary: oklch(0.78 0.17 155);
+  --sidebar-primary-foreground: oklch(0.17 0.025 245);
+  --sidebar-accent: oklch(0.28 0.025 245);
+  --sidebar-accent-foreground: oklch(0.94 0.015 220);
+  --sidebar-border: oklch(0.36 0.025 245 / 75%);
+  --sidebar-ring: oklch(0.78 0.17 155);
+  --success: oklch(0.78 0.17 155);
+  --warning: oklch(0.79 0.16 78);
+  --region-asia: oklch(0.74 0.15 220);
+  --region-eu: oklch(0.78 0.17 155);
+  --region-na: oklch(0.79 0.16 78);
+  --graph-grid: oklch(0.38 0.022 245 / 45%);
+  --graph-edge: oklch(0.57 0.028 235);
+  --graph-node-ring: oklch(0.16 0.018 245);
+}
+
+:root {
+  --success: oklch(0.6 0.16 155);
+  --warning: oklch(0.65 0.14 78);
+  --region-asia: oklch(0.6 0.15 220);
+  --region-eu: oklch(0.6 0.16 155);
+  --region-na: oklch(0.68 0.15 78);
+  --graph-grid: oklch(0.7 0.02 245 / 25%);
+  --graph-edge: oklch(0.55 0.025 235);
+  --graph-node-ring: oklch(1 0 0);
+}
+
+@layer components {
+  .control-panel {
+    @apply min-w-0 border border-border bg-card p-4;
+  }
+
+  .section-frame {
+    @apply min-w-0 border border-border bg-card/55;
+  }
+
+  .section-heading {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3;
+  }
+
+  .panel-kicker {
+    @apply flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground;
+  }
+
+  .panel-kicker svg {
+    @apply size-3.5 text-primary;
+  }
+}
+
+.graph-canvas {
+  background-color: var(--background);
+}
+
+.graph-lane-label {
+  fill: var(--muted-foreground);
+  font: 600 10px ui-monospace, monospace;
+  letter-spacing: 0;
 }
 
 @layer base {
