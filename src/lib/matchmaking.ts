@@ -129,10 +129,15 @@ function makeMatch(id: number, players: Player[], links: PlayerEdge[]): Match {
 }
 
 /** Sorts edges in O(E log E), then selects disjoint pairs in O(E). */
-export function greedyMatchPlayers(players: Player[], edges: PlayerEdge[]): GreedyResult {
-  const sortedEdges = [...edges].sort(
-    (a, b) => a.weight - b.weight || a.id.localeCompare(b.id),
-  );
+export function greedyMatchPlayers(
+  players: Player[],
+  edges: PlayerEdge[],
+  edgeOrder: "greedy" | "input" = "greedy",
+): GreedyResult {
+  const sortedEdges =
+    edgeOrder === "greedy"
+      ? [...edges].sort((a, b) => a.weight - b.weight || a.id.localeCompare(b.id))
+      : edges;
   const byId = new Map(players.map((player) => [player.id, player]));
   const used = new Set<string>();
   const selectedPairs: { players: [Player, Player]; edge: PlayerEdge }[] = [];
@@ -366,17 +371,26 @@ export function createSeedPlayers(): Player[] {
   }));
 }
 
-export function createRandomPlayers(count: number, gameMode: GameMode): Player[] {
+export function createRandomPlayers(count: number, gameMode: GameMode, seed?: number): Player[] {
+  let state = seed ?? 0;
+  const random =
+    seed === undefined
+      ? Math.random
+      : () => {
+          state = (state * 1664525 + 1013904223) % 4294967296;
+          return state / 4294967296;
+        };
+
   return Array.from({ length: count }, (_, index) => {
     const region = REGIONS[Math.floor(index / 2) % REGIONS.length] ?? "Asia";
     const band = Math.floor(index / 2) % 5;
     return {
       id: `player-${gameMode}-${index + 1}`,
       name: `PLAYER_${String(index + 1).padStart(2, "0")}`,
-      skillRating: Math.min(2500, 850 + band * 290 + Math.floor(Math.random() * 100)),
+      skillRating: Math.min(2500, 850 + band * 290 + Math.floor(random() * 100)),
       region,
-      pingMs: 18 + Math.floor(Math.random() * 65),
-      waitTime: Math.floor(Math.random() * 90),
+      pingMs: 18 + Math.floor(random() * 65),
+      waitTime: Math.floor(random() * 90),
       gameMode,
     };
   });

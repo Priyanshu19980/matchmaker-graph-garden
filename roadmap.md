@@ -1,0 +1,4 @@
+- [ ] Build the interactive matchmaking dashboard, graph, controls, and result panels.
+- [ ] Add the How It Works guide and visual fairness/runtime analysis.
+- [ ] Restore route metadata and document the frontend-only algorithm/presentation boundary.
+- [ ] Run focused tests and verify the home screen and main controls in the preview.

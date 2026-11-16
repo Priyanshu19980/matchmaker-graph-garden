@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application architecture
+- Keep matchmaking graph construction, pair selection, team balancing, and server routing in frontend-only pure TypeScript modules; keep their visual controls and SVG/chart presentation in route-level UI so the algorithm stays independently testable.
