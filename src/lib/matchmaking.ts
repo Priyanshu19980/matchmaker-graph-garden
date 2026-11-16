@@ -129,10 +129,15 @@ function makeMatch(id: number, players: Player[], links: PlayerEdge[]): Match {
 }
 
 /** Sorts edges in O(E log E), then selects disjoint pairs in O(E). */
-export function greedyMatchPlayers(players: Player[], edges: PlayerEdge[]): GreedyResult {
-  const sortedEdges = [...edges].sort(
-    (a, b) => a.weight - b.weight || a.id.localeCompare(b.id),
-  );
+export function greedyMatchPlayers(
+  players: Player[],
+  edges: PlayerEdge[],
+  edgeOrder: "greedy" | "input" = "greedy",
+): GreedyResult {
+  const sortedEdges =
+    edgeOrder === "greedy"
+      ? [...edges].sort((a, b) => a.weight - b.weight || a.id.localeCompare(b.id))
+      : edges;
   const byId = new Map(players.map((player) => [player.id, player]));
   const used = new Set<string>();
   const selectedPairs: { players: [Player, Player]; edge: PlayerEdge }[] = [];

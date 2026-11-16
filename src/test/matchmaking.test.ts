@@ -78,6 +78,19 @@ describe("matchmaking algorithm", () => {
     expect(result.unmatched.map((item) => item.id)).toEqual(["c", "d"]);
   });
 
+  it("can evaluate a randomized baseline in the supplied edge order", () => {
+    const players = [player("a"), player("b"), player("c"), player("d")];
+    const edges: PlayerEdge[] = [
+      { id: "a-c", source: "a", target: "c", weight: 8 },
+      { id: "b-d", source: "b", target: "d", weight: 9 },
+      { id: "a-b", source: "a", target: "b", weight: 1 },
+      { id: "c-d", source: "c", target: "d", weight: 2 },
+    ];
+    const result = greedyMatchPlayers(players, edges, "input");
+
+    expect(result.acceptedEdges.map((edge) => edge.id)).toEqual(["a-c", "b-d"]);
+  });
+
   it("snake-drafts the two highest ratings against the next two in 2v2", () => {
     const players = [
       player("a", { skillRating: 2000, gameMode: "2v2" }),

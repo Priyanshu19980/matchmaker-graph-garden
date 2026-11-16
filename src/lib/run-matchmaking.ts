@@ -31,6 +31,7 @@ function meanFairness(scores: number[]) {
 /** Computes the greedy run, a reproducible random baseline, and measured sample sizes. */
 export function runMatchmaking(players: Player[], includeBenchmarks = true): MatchmakingRun & {
   benchmarks: { count: number; greedy: number; random: number; greedyMs: number; randomMs: number }[];
+  randomMatches: MatchmakingRun["matches"];
 } {
   const runStart = performance.now();
   const edges = buildCompatibilityGraph(players);
@@ -39,7 +40,11 @@ export function runMatchmaking(players: Player[], includeBenchmarks = true): Mat
   const durationMs = performance.now() - runStart;
 
   const randomStart = performance.now();
-  const randomResult = greedyMatchPlayers(players, seededShuffle(edges, players.length * 101 + edges.length));
+  const randomResult = greedyMatchPlayers(
+    players,
+    seededShuffle(edges, players.length * 101 + edges.length),
+    "input",
+  );
   const randomDurationMs = performance.now() - randomStart;
 
   const benchmarks: {
@@ -51,7 +56,7 @@ export function runMatchmaking(players: Player[], includeBenchmarks = true): Mat
   }[] = [];
 
   if (includeBenchmarks) {
-    for (const count of [10, 20, 30, 40, 50]) {
+    for (const count of [10, 25, 50, 75, 100]) {
       const benchmarkMode = players[0]?.gameMode ?? "1v1";
       const sample = createRandomPlayers(count, benchmarkMode).map((player, index) => ({
         ...player,
@@ -65,6 +70,7 @@ export function runMatchmaking(players: Player[], includeBenchmarks = true): Mat
       const sampleRandom = greedyMatchPlayers(
         sample,
         seededShuffle(sampleEdges, count * 271 + sampleEdges.length),
+        "input",
       );
       const randomMs = performance.now() - sampleRandomStart;
       benchmarks.push({
@@ -84,6 +90,7 @@ export function runMatchmaking(players: Player[], includeBenchmarks = true): Mat
     servers: assigned.servers,
     durationMs,
     randomFairness: meanFairness(randomResult.matches.map((match) => match.fairnessScore)),
+    randomMatches: randomResult.matches,
     randomDurationMs,
     benchmarks,
   };
