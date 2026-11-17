@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Activity,
@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Check,
   ChevronLeft,
-  ChevronRight,
   CircleHelp,
   Cpu,
   Gamepad2,
@@ -84,6 +83,7 @@ const regionStyles: Record<Region, { className: string; color: string }> = {
 
 function MatchmakerDashboard() {
   const [players, setPlayers] = useState<Player[]>(createSeedPlayers);
+  const [clientReady, setClientReady] = useState(false);
   const [playerCount, setPlayerCount] = useState(24);
   const [mode, setMode] = useState<FilterMode>("all");
   const [view, setView] = useState<ViewMode>("dashboard");
@@ -96,6 +96,8 @@ function MatchmakerDashboard() {
   const [draftWait, setDraftWait] = useState("20");
   const [draftMode, setDraftMode] = useState<GameMode>("1v1");
   const [formError, setFormError] = useState("");
+
+  useEffect(() => setClientReady(true), []);
 
   const visiblePlayers = useMemo(
     () => (mode === "all" ? players : players.filter((player) => player.gameMode === mode)),
@@ -349,7 +351,7 @@ function MatchmakerDashboard() {
                 </Button>
                 {stepIndex !== null && (
                   <Button variant="outline" onClick={handleStep} disabled={stepComplete}>
-                    {stepComplete ? <Check /> : <ChevronRight />}
+                    {stepComplete ? <Check /> : <ArrowRight />}
                     {stepComplete ? "Matching complete" : "Next edge"}
                   </Button>
                 )}
@@ -384,7 +386,7 @@ function MatchmakerDashboard() {
             <Metric label="Matches formed" value={String(run.matches.length)} detail={mode === "2v2" ? "four players each" : "one-versus-one"} icon={<GitBranch />} />
             <Metric label="Avg. fairness" value={`${greedyFairness}%`} detail="rating balance" icon={<Gauge />} />
             <Metric label="Avg. latency" value={averageLatency ? `${averageLatency} ms` : "—"} detail="assigned servers" icon={<Radio />} />
-            <Metric label="Run time" value={`${run.durationMs.toFixed(2)} ms`} detail="graph → assignment" icon={<Cpu />} />
+            <Metric label="Run time" value={clientReady ? `${run.durationMs.toFixed(2)} ms` : "—"} detail="graph → assignment" icon={<Cpu />} />
           </section>
 
           {stepIndex !== null && (
@@ -475,7 +477,7 @@ function MatchmakerDashboard() {
             </section>
           </div>
 
-          <AnalysisPanel run={run} fairness={greedyFairness} />
+          <AnalysisPanel run={run} fairness={greedyFairness} clientReady={clientReady} />
           <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-border py-4 font-mono text-[10px] text-muted-foreground">
             <span>ADA PROJECT / GREEDY GRAPH MATCHING</span><span>LOCAL SIMULATION · NO SERVER DATA SENT</span>
           </footer>
@@ -589,7 +591,7 @@ function Metric({ label, value, detail, icon }: { label: string; value: string; 
   return <div className="min-w-0 border-b border-r border-border p-3 sm:p-4 xl:border-b-0 last:border-r-0"><div className="mb-2 flex items-center justify-between gap-2"><span className="truncate text-[11px] text-muted-foreground">{label}</span><span className="shrink-0 text-muted-foreground [&_svg]:size-3.5">{icon}</span></div><p className="truncate font-mono text-xl font-bold sm:text-2xl">{value}</p><p className="mt-1 truncate text-[10px] text-muted-foreground">{detail}</p></div>;
 }
 
-function AnalysisPanel({ run, fairness }: { run: ReturnType<typeof runMatchmaking>; fairness: number }) {
+function AnalysisPanel({ run, fairness, clientReady }: { run: ReturnType<typeof runMatchmaking>; fairness: number; clientReady: boolean }) {
   const fairnessData = run.benchmarks.map((point) => ({ players: point.count, Greedy: point.greedy, Random: point.random }));
   const runtimeData = run.benchmarks.map((point) => ({ players: point.count, Greedy: Number(point.greedyMs.toFixed(3)), Random: Number(point.randomMs.toFixed(3)) }));
   const chartTooltipStyle = { backgroundColor: "var(--popover)", border: "1px solid var(--border)", color: "var(--popover-foreground)", borderRadius: 0, fontSize: 11 };
@@ -602,11 +604,11 @@ function AnalysisPanel({ run, fairness }: { run: ReturnType<typeof runMatchmakin
       <div className="grid lg:grid-cols-2">
         <div className="border-b border-border p-4 lg:border-b-0 lg:border-r">
           <div className="mb-3 flex items-center justify-between"><p className="text-xs font-semibold">Average match fairness</p><span className="font-mono text-[10px] text-muted-foreground">HIGHER IS BETTER · CURRENT {fairness}%</span></div>
-          <div className="h-[220px] w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={fairnessData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}><CartesianGrid stroke="var(--graph-grid)" vertical={false} /><XAxis dataKey="players" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><Tooltip contentStyle={chartTooltipStyle} cursor={{ fill: "var(--muted)" }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Bar dataKey="Greedy" fill="var(--chart-1)" maxBarSize={22} /><Bar dataKey="Random" fill="var(--chart-3)" maxBarSize={22} /></BarChart></ResponsiveContainer></div>
+          <div className="h-[220px] w-full">{clientReady ? <ResponsiveContainer width="100%" height="100%"><BarChart data={fairnessData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}><CartesianGrid stroke="var(--graph-grid)" vertical={false} /><XAxis dataKey="players" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><Tooltip contentStyle={chartTooltipStyle} cursor={{ fill: "var(--muted)" }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Bar dataKey="Greedy" fill="var(--chart-1)" maxBarSize={22} /><Bar dataKey="Random" fill="var(--chart-3)" maxBarSize={22} /></BarChart></ResponsiveContainer> : <ChartPlaceholder />}</div>
         </div>
         <div className="p-4">
           <div className="mb-3 flex items-center justify-between"><p className="text-xs font-semibold">Matching runtime</p><span className="font-mono text-[10px] text-muted-foreground">MILLISECONDS · LOWER IS BETTER</span></div>
-          <div className="h-[220px] w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={runtimeData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}><CartesianGrid stroke="var(--graph-grid)" vertical={false} /><XAxis dataKey="players" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><Tooltip contentStyle={chartTooltipStyle} cursor={{ fill: "var(--muted)" }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Bar dataKey="Greedy" fill="var(--chart-1)" maxBarSize={22} /><Bar dataKey="Random" fill="var(--chart-3)" maxBarSize={22} /></BarChart></ResponsiveContainer></div>
+          <div className="h-[220px] w-full">{clientReady ? <ResponsiveContainer width="100%" height="100%"><BarChart data={runtimeData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}><CartesianGrid stroke="var(--graph-grid)" vertical={false} /><XAxis dataKey="players" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} /><Tooltip contentStyle={chartTooltipStyle} cursor={{ fill: "var(--muted)" }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Bar dataKey="Greedy" fill="var(--chart-1)" maxBarSize={22} /><Bar dataKey="Random" fill="var(--chart-3)" maxBarSize={22} /></BarChart></ResponsiveContainer> : <ChartPlaceholder />}</div>
         </div>
       </div>
       <div className="grid gap-3 border-t border-border p-4 sm:grid-cols-3">
@@ -620,6 +622,10 @@ function AnalysisPanel({ run, fairness }: { run: ReturnType<typeof runMatchmakin
 
 function Complexity({ label, value, detail }: { label: string; value: string; detail: string }) {
   return <div className="border-l-2 border-primary/40 pl-3"><p className="text-[10px] uppercase text-muted-foreground">{label}</p><p className="mt-1 font-mono text-sm font-bold">{value}</p><p className="mt-1 text-[10px] text-muted-foreground">{detail}</p></div>;
+}
+
+function ChartPlaceholder() {
+  return <div className="flex h-full items-center justify-center border border-dashed border-border font-mono text-[10px] text-muted-foreground">PREPARING BENCHMARKS</div>;
 }
 
 function HowItWorks({ onBack }: { onBack: () => void }) {

@@ -43,7 +43,7 @@ describe("matchmaking algorithm", () => {
     const players = [
       player("a", { skillRating: 1000 }),
       player("b", { skillRating: 1250 }),
-      player("c", { skillRating: 1251 }),
+      player("c", { skillRating: 1251, region: "NA" }),
       player("d", { region: "EU" }),
       player("e", { gameMode: "2v2" }),
     ];
@@ -55,14 +55,14 @@ describe("matchmaking algorithm", () => {
       player("a", { skillRating: 1000, pingMs: 20, waitTime: 30 }),
       player("b", { skillRating: 1100, pingMs: 40, waitTime: 10 }),
     ]);
-    expect(edge?.weight).toBe(107);
+    expect(edge?.weight).toBe(106);
   });
 
   it("stores each compatible edge in both adjacency-list directions", () => {
     const players = [player("a"), player("b")];
     const adjacency = buildAdjacencyList(players, buildCompatibilityGraph(players));
-    expect(adjacency.a?.[0]?.playerId).toBe("b");
-    expect(adjacency.b?.[0]?.playerId).toBe("a");
+    expect(adjacency["a"]?.[0]?.playerId).toBe("b");
+    expect(adjacency["b"]?.[0]?.playerId).toBe("a");
   });
 
   it("greedily chooses lowest-weight edges without reusing players", () => {
@@ -105,6 +105,24 @@ describe("matchmaking algorithm", () => {
     const result = greedyMatchPlayers(players, edges);
     expect(result.matches[0]?.teamA.map((item) => item.id)).toEqual(["a", "d"]);
     expect(result.matches[0]?.teamB.map((item) => item.id)).toEqual(["b", "c"]);
+  });
+
+  it("keeps 1v1 and 2v2 matches separate when both modes are visible", () => {
+    const players = [
+      player("solo-a"),
+      player("solo-b"),
+      player("team-a", { gameMode: "2v2" }),
+      player("team-b", { gameMode: "2v2" }),
+      player("team-c", { gameMode: "2v2" }),
+      player("team-d", { gameMode: "2v2" }),
+    ];
+    const result = greedyMatchPlayers(players, buildCompatibilityGraph(players));
+
+    expect(result.matches.map((item) => item.players.length)).toEqual([2, 4]);
+    expect(result.matches.map((item) => item.players.map((entry) => entry.gameMode))).toEqual([
+      ["1v1", "1v1"],
+      ["2v2", "2v2", "2v2", "2v2"],
+    ]);
   });
 
   it("finds the shortest Dijkstra path", () => {

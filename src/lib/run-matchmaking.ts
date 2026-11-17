@@ -58,7 +58,7 @@ export function runMatchmaking(players: Player[], includeBenchmarks = true): Mat
   if (includeBenchmarks) {
     for (const count of [10, 25, 50, 75, 100]) {
       const benchmarkMode = players[0]?.gameMode ?? "1v1";
-      const sample = createRandomPlayers(count, benchmarkMode).map((player, index) => ({
+      const sample = createRandomPlayers(count, benchmarkMode, count * 271 + 19).map((player, index) => ({
         ...player,
         id: `bench-${count}-${index}`,
       }));
